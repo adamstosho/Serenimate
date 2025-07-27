@@ -55,7 +55,7 @@ export const metadata = {
     description: "Track your mood, practice gratitude, and find inner peace with SereniMate.",
     images: ["/og-image.png"],
   },
-  generator: 'v0.dev'
+  generator: 'ART_Redox💖'
 }
 
 export default function RootLayout({
