@@ -3,10 +3,10 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, BookOpen, Wind, BarChart3, Settings, Sparkles } from "lucide-react"
+import { Home, BookOpen, Wind, BarChart3, Settings, Sparkles, Info } from "lucide-react"
 
 const navItems = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/app", label: "Home", icon: Home },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/breathe", label: "Breathe", icon: Wind },
   { href: "/progress", label: "Progress", icon: BarChart3 },
@@ -15,6 +15,11 @@ const navItems = [
 
 export default function Navigation() {
   const pathname = usePathname()
+  
+  // Don't show navigation on landing page
+  if (pathname === "/") {
+    return null
+  }
 
   return (
     <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
@@ -63,6 +68,28 @@ export default function Navigation() {
               </Link>
             )
           })}
+          
+          {/* Info/Landing page link */}
+          <Link href="/">
+            <motion.div
+              whileHover={{ 
+                scale: 1.1,
+                y: -2,
+                backgroundColor: "rgba(255, 255, 255, 0.2)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="relative p-3 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white"
+            >
+              <Info className="w-5 h-5" />
+              
+              {/* Hover effect */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl"
+              />
+            </motion.div>
+          </Link>
         </div>
       </div>
     </nav>

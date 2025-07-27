@@ -223,9 +223,10 @@ export default function Settings() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center text-slate-500 dark:text-slate-400 text-sm"
         >
-          <p className="mb-2">SereniMate v1.0</p>
+          <p className="mb-2">SereniMate. Built by ART_Redox💖</p>
           <p className="mb-4">Your mental wellness companion</p>
           <button
+            type="button"
             onClick={() => setShowInfo(!showInfo)}
             className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 underline"
           >
