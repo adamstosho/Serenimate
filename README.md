@@ -168,6 +168,29 @@ npm run lint         # Run ESLint
 ```
 
 # Preview of the app interface 
+
+![screenshot](/public/screenshots/screencapture-localhost-3001-2025-07-27-23_07_07.png)
+
+Landing page of the app
+
+![screenshot](/public/screenshots/screencapture-localhost-3001-app-2025-07-27-23_11_24.png)
+
+The app mood logging page
+
+![screenshot](/public/screenshots/screencapture-localhost-3001-breathe-2025-07-27-23_11_41.png)
+Breathing exercise page
+
+![screenshot](/public/screenshots/screencapture-localhost-3001-journal-2025-07-27-23_11_15.png)
+Journaling page
+
+
+![screenshot](/public/screenshots/screencapture-localhost-3001-progress-2025-07-27-23_11_51.png)
+Progress tracking page
+
+![screenshot](/public/screenshots/screencapture-localhost-3001-settings-2025-07-27-23_12_05.png)
+Settings page of the app
+
+
 ### Project Structure
 ```
 serenimate/
