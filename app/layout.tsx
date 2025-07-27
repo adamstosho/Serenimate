@@ -29,6 +29,10 @@ export const metadata = {
   creator: "SereniMate",
   publisher: "SereniMate",
   robots: "index, follow",
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+  },
   openGraph: {
     title: "SereniMate - Your Mental Wellness Companion",
     description: "Track your mood, practice gratitude, and find inner peace with SereniMate.",

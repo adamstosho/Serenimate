@@ -274,17 +274,17 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                name: "Sarah M.",
+                name: "Adam Ridwanullahi O.",
                 text: "SereniMate helped me develop a daily gratitude practice. I feel more positive and mindful.",
-                rating: 5
+                rating: 4
               },
               {
-                name: "Alex K.",
+                name: "Usman Abdullahi",
                 text: "The breathing exercises are amazing. I use them whenever I feel stressed or anxious.",
                 rating: 5
               },
               {
-                name: "Maria L.",
+                name: "Ahmad Soliu",
                 text: "Tracking my mood daily has given me insights into my emotional patterns. Highly recommend!",
                 rating: 5
               }
@@ -364,7 +364,7 @@ export default function LandingPage() {
           </div>
           
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            © 2024 SereniMate. Your mental wellness companion.
+            © 2025 SereniMate. Your mental wellness companion, built by ART_Redox💖.
           </p>
         </motion.div>
       </div>
