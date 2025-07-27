@@ -7,15 +7,19 @@ import {
   isLocalStorageAvailable, 
   exportAllData, 
   importData,
+  exportToPDF,
   clearAllData 
 } from "@/utils/storage"
-import { Database, Download, Upload, Trash2, RefreshCw, CheckCircle, AlertCircle } from "lucide-react"
+import { Database, Download, Upload, Trash2, RefreshCw, CheckCircle, AlertCircle, FileText } from "lucide-react"
+import { AnimatePresence } from "framer-motion"
 
 export default function StorageDebug() {
   const [stats, setStats] = useState<any>(null)
   const [isAvailable, setIsAvailable] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [importData, setImportData] = useState("")
+  const [importMessage, setImportMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     updateStats()
@@ -32,22 +36,52 @@ export default function StorageDebug() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `serenimate-debug-${new Date().toISOString().split('T')[0]}.json`
+    a.download = `serenimate-data-${new Date().toISOString().split('T')[0]}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
 
+  const handlePDFExport = async () => {
+    setIsLoading(true)
+    try {
+      const result = await exportToPDF()
+      if (result.success && result.blob) {
+        const url = URL.createObjectURL(result.blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `serenimate-report-${new Date().toISOString().split('T')[0]}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+        setImportMessage("PDF exported successfully!")
+        setTimeout(() => setImportMessage(""), 3000)
+      } else {
+        setImportMessage(result.message || "Failed to generate PDF")
+        setTimeout(() => setImportMessage(""), 3000)
+      }
+    } catch (error) {
+      setImportMessage("Error generating PDF")
+      setTimeout(() => setImportMessage(""), 3000)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleImport = () => {
     if (importData.trim()) {
-      const success = importData(importData)
-      if (success) {
+      setIsLoading(true)
+      const result = importData(importData)
+      
+      if (result.success) {
         updateStats()
         setShowImport(false)
         setImportData("")
-        alert("Data imported successfully!")
+        setImportMessage(result.message)
+        setTimeout(() => setImportMessage(""), 3000)
       } else {
-        alert("Failed to import data. Please check the format.")
+        setImportMessage(result.message)
+        setTimeout(() => setImportMessage(""), 3000)
       }
+      setIsLoading(false)
     }
   }
 
@@ -56,9 +90,11 @@ export default function StorageDebug() {
       const success = clearAllData()
       if (success) {
         updateStats()
-        alert("All data cleared successfully!")
+        setImportMessage("All data cleared successfully!")
+        setTimeout(() => setImportMessage(""), 3000)
       } else {
-        alert("Failed to clear data.")
+        setImportMessage("Failed to clear data.")
+        setTimeout(() => setImportMessage(""), 3000)
       }
     }
   }
@@ -92,6 +128,24 @@ export default function StorageDebug() {
         </motion.button>
       </div>
 
+      {/* Message Display */}
+      <AnimatePresence>
+        {importMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`mb-4 p-3 rounded-lg text-sm ${
+              importMessage.includes("successfully") || importMessage.includes("Successfully")
+                ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
+                : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
+            }`}
+          >
+            {importMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {stats && (
         <div className="space-y-3 mb-4">
           <div className="grid grid-cols-2 gap-4">
@@ -123,22 +177,37 @@ export default function StorageDebug() {
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 mb-4">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleExport}
-          className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm rounded-lg transition-colors"
         >
           <Download className="w-4 h-4" />
-          Export
+          Export JSON
         </motion.button>
         
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={handlePDFExport}
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white text-sm rounded-lg transition-colors"
+        >
+          <FileText className="w-4 h-4" />
+          Export PDF
+        </motion.button>
+      </div>
+
+      <div className="flex gap-2">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setShowImport(!showImport)}
-          className="flex items-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors"
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white text-sm rounded-lg transition-colors flex-1"
         >
           <Upload className="w-4 h-4" />
           Import
@@ -148,7 +217,8 @@ export default function StorageDebug() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleClear}
-          className="flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm rounded-lg transition-colors"
         >
           <Trash2 className="w-4 h-4" />
           Clear
@@ -174,9 +244,10 @@ export default function StorageDebug() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleImport}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors"
+              disabled={isLoading || !importData.trim()}
+              className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white text-sm rounded-lg transition-colors"
             >
-              Import Data
+              {isLoading ? "Importing..." : "Import Data"}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}

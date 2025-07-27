@@ -1,118 +1,128 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Lightbulb, Heart, Brain, Coffee } from "lucide-react"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Lightbulb, Heart, Brain, Coffee, ChevronDown, ChevronUp } from "lucide-react"
 
 const tips = [
   {
-    text: "Take three deep breaths before starting your day.",
-    category: "mindfulness",
-    icon: "🧘",
-    color: "from-teal-500 to-blue-500"
+    text: "Practice gratitude by writing down 3 things you're thankful for each day",
+    category: "Gratitude",
+    icon: Heart,
+    color: "from-pink-400 to-rose-500"
   },
   {
-    text: "Practice gratitude by writing down three things you're thankful for.",
-    category: "gratitude",
-    icon: "🙏",
-    color: "from-purple-500 to-pink-500"
+    text: "Take 5 deep breaths when you feel overwhelmed",
+    category: "Mindfulness",
+    icon: Brain,
+    color: "from-blue-400 to-indigo-500"
   },
   {
-    text: "Take a 5-minute walk outside to connect with nature.",
-    category: "wellness",
-    icon: "🌿",
-    color: "from-green-500 to-emerald-500"
+    text: "Connect with a friend or family member today",
+    category: "Connection",
+    icon: Heart,
+    color: "from-green-400 to-emerald-500"
   },
   {
-    text: "Drink a glass of water and notice how it makes you feel.",
-    category: "self-care",
-    icon: "💧",
-    color: "from-blue-500 to-cyan-500"
+    text: "Do something kind for yourself today",
+    category: "Self-Care",
+    icon: Lightbulb,
+    color: "from-yellow-400 to-orange-500"
   },
   {
-    text: "Smile at yourself in the mirror - you deserve kindness.",
-    category: "self-love",
-    icon: "💝",
-    color: "from-pink-500 to-rose-500"
-  },
-  {
-    text: "Listen to your favorite song and let yourself feel the music.",
-    category: "joy",
-    icon: "🎵",
-    color: "from-indigo-500 to-purple-500"
-  },
-  {
-    text: "Call or text someone you care about.",
-    category: "connection",
-    icon: "💌",
-    color: "from-orange-500 to-red-500"
-  },
-  {
-    text: "Do one small thing that brings you joy today.",
-    category: "happiness",
-    icon: "✨",
-    color: "from-yellow-500 to-orange-500"
-  },
-  {
-    text: "Practice saying 'no' to things that drain your energy.",
-    category: "boundaries",
-    icon: "🛡️",
-    color: "from-slate-500 to-gray-500"
-  },
-  {
-    text: "Celebrate a small win from today, no matter how tiny.",
-    category: "achievement",
-    icon: "🏆",
-    color: "from-amber-500 to-yellow-500"
-  },
+    text: "Take a short walk outside to clear your mind",
+    category: "Movement",
+    icon: Coffee,
+    color: "from-purple-400 to-pink-500"
+  }
 ]
 
 export default function TipCard() {
-  const [currentTip, setCurrentTip] = useState(tips[0])
   const [isExpanded, setIsExpanded] = useState(false)
-
-  useEffect(() => {
-    // Get tip based on current date to ensure same tip per day
-    const today = new Date()
-    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000)
-    const tipIndex = dayOfYear % tips.length
-    setCurrentTip(tips[tipIndex])
-  }, [])
+  
+  // Get today's tip based on date
+  const getTodaysTip = () => {
+    const today = new Date().getDate()
+    return tips[today % tips.length]
+  }
+  
+  const todaysTip = getTodaysTip()
+  const IconComponent = todaysTip.icon
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className={`bg-gradient-to-r ${currentTip.color} rounded-2xl shadow-lg p-6 text-white cursor-pointer`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="card-glass p-6 cursor-pointer hover:shadow-glow-hover transition-all duration-300"
       onClick={() => setIsExpanded(!isExpanded)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
     >
-      <div className="flex items-start gap-3">
-        <div className="text-2xl">{currentTip.icon}</div>
+      <div className="flex items-start gap-4">
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${todaysTip.color} text-white shadow-lg`}>
+          <IconComponent className="w-6 h-6" />
+        </div>
+        
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb className="w-4 h-4" />
-            <h3 className="font-semibold font-nunito">Tip of the Day</h3>
-            <span className="text-xs bg-white/20 px-2 py-1 rounded-full capitalize">
-              {currentTip.category}
-            </span>
-          </div>
-          <p className="text-sm opacity-90 font-inter leading-relaxed">{currentTip.text}</p>
-          
-          {isExpanded && (
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium px-2 py-1 bg-white/20 rounded-full text-slate-700 dark:text-slate-300">
+                {todaysTip.category}
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Today's Tip
+              </span>
+            </div>
+            
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-3 pt-3 border-t border-white/20"
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <p className="text-xs opacity-75">
-                💡 <strong>Why this helps:</strong> Taking small, intentional actions like this can significantly improve your mental well-being and create positive habits.
-              </p>
+              {isExpanded ? (
+                <ChevronUp className="w-5 h-5 text-slate-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-400" />
+              )}
             </motion.div>
-          )}
+          </div>
+          
+          <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+            {todaysTip.text}
+          </p>
+          
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 pt-4 border-t border-white/20"
+              >
+                <div className="bg-white/10 rounded-lg p-3">
+                  <h4 className="font-semibold text-slate-800 dark:text-white mb-2">
+                    Why this helps:
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {todaysTip.category === "Gratitude" && 
+                      "Practicing gratitude shifts your focus from what's wrong to what's right, improving overall mood and reducing stress."
+                    }
+                    {todaysTip.category === "Mindfulness" && 
+                      "Deep breathing activates your parasympathetic nervous system, helping you feel calmer and more centered."
+                    }
+                    {todaysTip.category === "Connection" && 
+                      "Social connections release oxytocin, reducing stress and increasing feelings of happiness and belonging."
+                    }
+                    {todaysTip.category === "Self-Care" && 
+                      "Taking time for yourself reduces stress, improves mood, and helps you show up better for others."
+                    }
+                    {todaysTip.category === "Movement" && 
+                      "Physical activity releases endorphins, natural mood boosters that help reduce stress and anxiety."
+                    }
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>

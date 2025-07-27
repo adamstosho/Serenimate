@@ -3,14 +3,15 @@
 import { motion, AnimatePresence } from "framer-motion"
 import ThemeToggle from "@/components/theme-toggle"
 import StorageDebug from "@/components/storage-debug"
-import { clearAllData, exportAllData } from "@/utils/storage"
+import { clearAllData, exportAllData, exportToPDF } from "@/utils/storage"
 import { useState } from "react"
-import { AlertTriangle, CheckCircle, Info, Trash2, Download, Upload } from "lucide-react"
+import { AlertTriangle, CheckCircle, Info, Trash2, Download, Upload, FileText } from "lucide-react"
 
 export default function Settings() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleReset = () => {
     if (showConfirm) {
@@ -40,6 +41,27 @@ export default function Settings() {
     a.download = `serenimate-data-${new Date().toISOString().split('T')[0]}.json`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  const handlePDFExport = async () => {
+    setIsLoading(true)
+    try {
+      const result = await exportToPDF()
+      if (result.success && result.blob) {
+        const url = URL.createObjectURL(result.blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `serenimate-report-${new Date().toISOString().split('T')[0]}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+      } else {
+        console.error("Failed to generate PDF:", result.message)
+      }
+    } catch (error) {
+      console.error("Error generating PDF:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -103,16 +125,28 @@ export default function Settings() {
                 <p className="font-medium text-slate-700 dark:text-slate-300">Export Data</p>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                Download your mood and journal data as a JSON file.
+                Download your mood and journal data as JSON or PDF.
               </p>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleExportData}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                Export Data
-              </motion.button>
+              <div className="grid grid-cols-2 gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleExportData}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Export JSON
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePDFExport}
+                  disabled={isLoading}
+                  className="w-full bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  {isLoading ? "Generating..." : "Export PDF"}
+                </motion.button>
+              </div>
             </div>
 
             <div className="border-t border-slate-200 dark:border-slate-600 pt-4">

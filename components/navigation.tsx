@@ -1,58 +1,64 @@
 "use client"
 
-import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, BookOpen, Wind, TrendingUp, Settings } from "lucide-react"
+import { Home, BookOpen, Wind, BarChart3, Settings, Sparkles } from "lucide-react"
 
 const navItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/journal", icon: BookOpen, label: "Journal" },
-  { href: "/breathe", icon: Wind, label: "Breathe" },
-  { href: "/progress", icon: TrendingUp, label: "Progress" },
-  { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/", label: "Home", icon: Home },
+  { href: "/journal", label: "Journal", icon: BookOpen },
+  { href: "/breathe", label: "Breathe", icon: Wind },
+  { href: "/progress", label: "Progress", icon: BarChart3 },
+  { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 export default function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 px-4 py-3 z-50">
-      <div className="max-w-md mx-auto">
-        <div className="flex justify-around">
-          {navItems.map(({ href, icon: Icon, label }) => {
-            const isActive = pathname === href
-
+    <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="card-glass px-4 py-3 shadow-glow">
+        <div className="flex items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+            
             return (
-              <Link key={href} href={href} className="relative group">
+              <Link key={item.href} href={item.href}>
                 <motion.div
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                  whileHover={{ 
+                    scale: 1.1,
+                    y: -2,
+                    backgroundColor: "rgba(255, 255, 255, 0.2)"
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative p-3 rounded-xl transition-all duration-200 ${
+                    isActive 
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg" 
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white"
                   }`}
                 >
-                  <motion.div
-                    animate={isActive ? { scale: [1, 1.2, 1] } : {}}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Icon className="w-6 h-6 mb-1" />
-                  </motion.div>
-                  <span className="text-xs font-medium">{label}</span>
-
+                  {/* Active indicator */}
                   <AnimatePresence>
                     {isActive && (
                       <motion.div
-                        layoutId="activeTab"
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0 }}
-                        className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-teal-600 dark:bg-teal-400 rounded-full"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full shadow-lg"
                       />
                     )}
                   </AnimatePresence>
+                  
+                  <Icon className="w-5 h-5" />
+                  
+                  {/* Hover effect */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl"
+                  />
                 </motion.div>
               </Link>
             )

@@ -318,32 +318,257 @@ export const exportAllData = (): string => {
   return JSON.stringify(data, null, 2)
 }
 
-// Data import functionality
-export const importData = (jsonData: string): boolean => {
+// Enhanced data import functionality with validation
+export const importData = (jsonData: string): { success: boolean; message: string } => {
   try {
+    // Validate JSON format
     const data = JSON.parse(jsonData)
     
+    // Validate data structure
+    if (!data || typeof data !== "object") {
+      return { success: false, message: "Invalid data format" }
+    }
+    
+    let importedCount = 0
+    let errors: string[] = []
+    
+    // Import moods with validation
     if (data.moods && Array.isArray(data.moods)) {
-      safeSetItem(STORAGE_KEYS.MOODS, JSON.stringify(data.moods))
+      const validMoods = data.moods.filter((mood: any) => 
+        mood && 
+        typeof mood === "object" && 
+        isValidDate(mood.date) && 
+        isValidMood(mood.mood)
+      )
+      
+      if (validMoods.length > 0) {
+        const success = safeSetItem(STORAGE_KEYS.MOODS, JSON.stringify(validMoods))
+        if (success) {
+          importedCount += validMoods.length
+        } else {
+          errors.push("Failed to save mood data")
+        }
+      }
     }
     
+    // Import journal with validation
     if (data.journal && Array.isArray(data.journal)) {
-      safeSetItem(STORAGE_KEYS.JOURNAL, JSON.stringify(data.journal))
+      const validJournal = data.journal.filter((entry: any) => 
+        entry && 
+        typeof entry === "object" && 
+        isValidDate(entry.date) && 
+        isValidJournalEntry(entry.entry)
+      )
+      
+      if (validJournal.length > 0) {
+        const success = safeSetItem(STORAGE_KEYS.JOURNAL, JSON.stringify(validJournal))
+        if (success) {
+          importedCount += validJournal.length
+        } else {
+          errors.push("Failed to save journal data")
+        }
+      }
     }
     
+    // Import breathing sessions with validation
     if (data.breathingSessions && Array.isArray(data.breathingSessions)) {
-      safeSetItem(STORAGE_KEYS.SESSIONS, JSON.stringify(data.breathingSessions))
+      const validSessions = data.breathingSessions.filter((session: any) => 
+        session && 
+        typeof session === "object" && 
+        isValidDate(session.date) && 
+        typeof session.duration === "number" && 
+        typeof session.breaths === "number"
+      )
+      
+      if (validSessions.length > 0) {
+        const success = safeSetItem(STORAGE_KEYS.SESSIONS, JSON.stringify(validSessions))
+        if (success) {
+          importedCount += validSessions.length
+        } else {
+          errors.push("Failed to save breathing session data")
+        }
+      }
     }
     
+    // Import settings with validation
     if (data.settings && typeof data.settings === "object") {
-      safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(data.settings))
+      const validSettings = {
+        theme: data.settings.theme || "system",
+        notifications: data.settings.notifications !== false,
+        reminderTime: data.settings.reminderTime
+      }
+      
+      const success = safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(validSettings))
+      if (!success) {
+        errors.push("Failed to save settings")
+      }
     }
     
-    console.log("Data imported successfully")
-    return true
+    if (importedCount > 0) {
+      const message = `Successfully imported ${importedCount} items${errors.length > 0 ? ` (with ${errors.length} errors)` : ''}`
+      console.log("Data imported successfully:", { importedCount, errors })
+      return { success: true, message }
+    } else {
+      return { success: false, message: "No valid data found to import" }
+    }
+    
   } catch (error) {
     console.error("Error importing data:", error)
-    return false
+    return { success: false, message: "Invalid JSON format" }
+  }
+}
+
+// PDF Export functionality
+export const exportToPDF = async (): Promise<{ success: boolean; message: string; blob?: Blob }> => {
+  try {
+    const moods = getAllMoodData()
+    const journal = getAllJournalData()
+    const sessions = getAllBreathingSessions()
+    const settings = getSettings()
+    
+    // Create PDF content
+    const pdfContent = generatePDFContent(moods, journal, sessions, settings)
+    
+    // Generate PDF using jsPDF
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF()
+    
+    // Add title
+    doc.setFontSize(20)
+    doc.setTextColor(102, 126, 234) // Blue color
+    doc.text('SereniMate - Wellness Report', 20, 20)
+    
+    // Add export date
+    doc.setFontSize(12)
+    doc.setTextColor(100, 100, 100)
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30)
+    
+    let yPosition = 50
+    
+    // Add mood data
+    if (moods.length > 0) {
+      doc.setFontSize(16)
+      doc.setTextColor(102, 126, 234)
+      doc.text('Mood Tracking', 20, yPosition)
+      yPosition += 10
+      
+      doc.setFontSize(10)
+      doc.setTextColor(50, 50, 50)
+      
+      moods.slice(0, 10).forEach((mood, index) => {
+        const date = new Date(mood.date).toLocaleDateString()
+        const moodLabel = mood.mood.charAt(0).toUpperCase() + mood.mood.slice(1)
+        doc.text(`${date}: ${moodLabel}`, 30, yPosition)
+        yPosition += 7
+        
+        if (yPosition > 250) {
+          doc.addPage()
+          yPosition = 20
+        }
+      })
+      
+      yPosition += 10
+    }
+    
+    // Add journal entries
+    if (journal.length > 0) {
+      doc.setFontSize(16)
+      doc.setTextColor(102, 126, 234)
+      doc.text('Journal Entries', 20, yPosition)
+      yPosition += 10
+      
+      doc.setFontSize(10)
+      doc.setTextColor(50, 50, 50)
+      
+      journal.slice(0, 5).forEach((entry, index) => {
+        const date = new Date(entry.date).toLocaleDateString()
+        doc.text(`${date}:`, 30, yPosition)
+        yPosition += 5
+        
+        entry.entry.forEach((text, textIndex) => {
+          if (text.trim()) {
+            const lines = doc.splitTextToSize(`• ${text}`, 150)
+            lines.forEach(line => {
+              doc.text(line, 35, yPosition)
+              yPosition += 5
+              
+              if (yPosition > 250) {
+                doc.addPage()
+                yPosition = 20
+              }
+            })
+          }
+        })
+        
+        yPosition += 5
+      })
+      
+      yPosition += 10
+    }
+    
+    // Add breathing sessions
+    if (sessions.length > 0) {
+      doc.setFontSize(16)
+      doc.setTextColor(102, 126, 234)
+      doc.text('Breathing Sessions', 20, yPosition)
+      yPosition += 10
+      
+      doc.setFontSize(10)
+      doc.setTextColor(50, 50, 50)
+      
+      sessions.slice(0, 10).forEach((session, index) => {
+        const date = new Date(session.date).toLocaleDateString()
+        const duration = Math.round(session.duration / 60) // Convert to minutes
+        doc.text(`${date}: ${duration}min, ${session.breaths} breaths`, 30, yPosition)
+        yPosition += 7
+        
+        if (yPosition > 250) {
+          doc.addPage()
+          yPosition = 20
+        }
+      })
+    }
+    
+    // Add summary
+    doc.addPage()
+    doc.setFontSize(16)
+    doc.setTextColor(102, 126, 234)
+    doc.text('Summary', 20, 20)
+    
+    doc.setFontSize(12)
+    doc.setTextColor(50, 50, 50)
+    doc.text(`Total Mood Entries: ${moods.length}`, 20, 40)
+    doc.text(`Total Journal Entries: ${journal.length}`, 20, 50)
+    doc.text(`Total Breathing Sessions: ${sessions.length}`, 20, 60)
+    
+    // Generate blob
+    const pdfBlob = doc.output('blob')
+    
+    return { 
+      success: true, 
+      message: "PDF generated successfully", 
+      blob: pdfBlob 
+    }
+    
+  } catch (error) {
+    console.error("Error generating PDF:", error)
+    return { success: false, message: "Failed to generate PDF" }
+  }
+}
+
+// Helper function to generate PDF content
+const generatePDFContent = (moods: MoodEntry[], journal: JournalEntry[], sessions: BreathingSession[], settings: AppSettings) => {
+  return {
+    moods,
+    journal,
+    sessions,
+    settings,
+    summary: {
+      totalMoods: moods.length,
+      totalJournal: journal.length,
+      totalSessions: sessions.length,
+      exportDate: new Date().toISOString()
+    }
   }
 }
 
