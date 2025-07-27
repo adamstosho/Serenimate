@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import ThemeToggle from "@/components/theme-toggle"
-import { clearAllData } from "@/utils/storage"
+import StorageDebug from "@/components/storage-debug"
+import { clearAllData, exportAllData } from "@/utils/storage"
 import { useState } from "react"
 import { AlertTriangle, CheckCircle, Info, Trash2, Download, Upload } from "lucide-react"
 
@@ -13,25 +14,26 @@ export default function Settings() {
 
   const handleReset = () => {
     if (showConfirm) {
-      clearAllData()
+      const success = clearAllData()
       setShowConfirm(false)
-      setShowSuccess(true)
       
-      // Hide success message after 3 seconds
-      setTimeout(() => setShowSuccess(false), 3000)
+      if (success) {
+        setShowSuccess(true)
+        // Hide success message after 3 seconds
+        setTimeout(() => setShowSuccess(false), 3000)
+      } else {
+        console.error("Failed to clear data")
+        // You could add an error state here if needed
+      }
     } else {
       setShowConfirm(true)
     }
   }
 
   const handleExportData = () => {
-    const data = {
-      moodData: JSON.parse(localStorage.getItem('moodData') || '{}'),
-      journalData: JSON.parse(localStorage.getItem('journalData') || '{}'),
-      exportDate: new Date().toISOString()
-    }
+    const data = exportAllData()
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const blob = new Blob([data], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -147,6 +149,15 @@ export default function Settings() {
               )}
             </div>
           </div>
+        </motion.div>
+
+        {/* Storage Debug Component */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <StorageDebug />
         </motion.div>
 
         <motion.div

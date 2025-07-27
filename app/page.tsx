@@ -59,14 +59,21 @@ export default function Home() {
 
   const handleMoodSelect = (moodId: string) => {
     const today = new Date().toISOString().split("T")[0]
-    saveMoodData(today, moodId)
-    setSelectedMood(moodId)
-    setTodaysMood(moodId)
-    setShowSuccess(true)
-    calculateStreak()
+    const success = saveMoodData(today, moodId)
     
-    // Hide success message after 3 seconds
-    setTimeout(() => setShowSuccess(false), 3000)
+    if (success) {
+      setSelectedMood(moodId)
+      setTodaysMood(moodId)
+      setShowSuccess(true)
+      calculateStreak()
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => setShowSuccess(false), 3000)
+    } else {
+      // Show error message if save failed
+      console.error("Failed to save mood data")
+      // You could add an error state here if needed
+    }
   }
 
   const getGreeting = () => {

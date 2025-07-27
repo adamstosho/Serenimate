@@ -30,10 +30,16 @@ export default function Journal() {
     const validEntries = newEntries.filter((entry) => entry.trim() !== "")
 
     if (validEntries.length > 0) {
-      saveJournalData(today, newEntries)
-      setEntries(newEntries)
-      setHasEntries(true)
-      setShowMotivation(false)
+      const success = saveJournalData(today, newEntries)
+      
+      if (success) {
+        setEntries(newEntries)
+        setHasEntries(true)
+        setShowMotivation(false)
+      } else {
+        console.error("Failed to save journal data")
+        // You could add an error state here if needed
+      }
     }
   }
 
